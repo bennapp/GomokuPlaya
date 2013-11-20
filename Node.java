@@ -7,7 +7,7 @@ public class Node{
 	public Node parent;
 	public int value;
 	public int[] move;
-	public PriorityQueue<Node> children = new PriorityQueue<Node>(19*19, new NodeValueComparator());
+	public PriorityQueue<int []> children = new PriorityQueue<int []>(19*19*19, new IntValueComparator());
 
 	//list of children?
 
@@ -16,7 +16,6 @@ public class Node{
 		this.m = m;
 		this.board = board;
 		this.parent = parent;
-		this.value = -1;
 	}
 	public Node(int n, int m, String board, Node parent){
 		this.n = n;
