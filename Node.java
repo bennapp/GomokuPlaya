@@ -7,7 +7,7 @@ public class Node{
 	public Node parent;
 	public int value;
 	public int[] move;
-	public PriorityQueue<int []> children = new PriorityQueue<int []>(19*19*19, new IntValueComparator());
+	public PriorityQueue<int[]> children = new PriorityQueue<int[]>(19*19*19, new IntValueComparator());
 
 	//list of children?
 
