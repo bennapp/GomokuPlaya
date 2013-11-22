@@ -1,3 +1,7 @@
+//Ben Nappier
+//ben2113
+//Gomoku Agent
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
@@ -7,7 +11,6 @@ import java.util.Random;
 import java.lang.Math;
 
 public class GPlayer implements Runnable{
-	public static long start;//?
 
 	public static char playerOne;
 	public static long s;
@@ -18,7 +21,7 @@ public class GPlayer implements Runnable{
 	public static int[] tempMyMove;
 	public static Node node;
 	
-	public static char[][] initBoard(int n){ //1 milli
+	public static char[][] initBoard(int n){
 		char[][] board = new char[n][n];
 		for(int i=0; i<n; i++){
 			for(int j=0; j<n; j++){
@@ -28,20 +31,25 @@ public class GPlayer implements Runnable{
 		return board;
 	}
 
-	public static char[][] stringToBoard(String s, int n){ //beggining from board?? not in tourny
-		String[] strings = s.split("\n");
-		char[][] board = new char[n][n];
-		for(int i=0; i<n; i++){
-			for(int j=0; j<n; j++){
-				board[i][j] = strings[i].charAt(j);
-			}
-		}
-		return board;
-	}
+	//public static char[][] stringToBoard(String s, int n){ //beggining from board?? not in tourny
+	//	String[] strings = s.split("\n");
+	//	char[][] board = new char[n][n];
+	//	for(int i=0; i<n; i++){
+	//		for(int j=0; j<n; j++){
+	//			board[i][j] = strings[i].charAt(j);
+	//		}
+	//	}
+	//	return board;
+	//}
 
 	public static String boardToString(char[][] board){ //2 milli right before done outputting
-		String boardString = "";
+		String boardString = " ";
+		for(int i =0; i<board.length; i++){
+			boardString += i%10 + " ";
+		}
+		boardString += "\n";
 		for(int i=0; i<board.length; i++){
+			boardString += i%10 ;
 			for(int j=0; j<board[0].length; j++){
 				boardString +=  String.valueOf(board[i][j]) + " ";
 			}
@@ -136,7 +144,6 @@ public class GPlayer implements Runnable{
 
 	public static int straightFourCount(char[][] board, char p, int m){ 
 		int count = 0;
-		// int max = 0;
 		for(int i=0; i<board.length; i++){
 			for(int j=0; j<board[0].length; j++){
 				if(board[i][j] == '.'){
@@ -156,7 +163,6 @@ public class GPlayer implements Runnable{
 				}
 			}
 		}
-		// p(max);
 		return count;
 	}
 
@@ -214,41 +220,32 @@ public class GPlayer implements Runnable{
 	}
 
 	public static int heuristicVal(Node node, char p){
-		char o;
-		if(p == 'x'){
-			o = 'o';
-		} else {
-			o = 'x';
-			//thne p == o;
+		char o = getO(p);
+		int value = 0;
+
+		int win = 100000;
+		int sfc = 0; //is two fc
+		int fc = 4000;
+		int otc = 0; //is two split 3
+		int stc = 2000;
+
+		//value += straightFourCount(node.board, p, node.m) * sfc;
+		//value -= straightFourCount(node.board, o, node.m) * (sfc+1);
+		value += fourCount(node.board, p, node.m)  * fc;
+		value -= fourCount(node.board, o, node.m)  * (fc+1);
+		//value += openThreeCount(node.board, p, node.m)  * otc;
+		//value -= openThreeCount(node.board, o, node.m) * (otc+1);
+		value += splitThreeCount(node.board, p, node.m) * stc;
+		value -= splitThreeCount(node.board, o, node.m)  * (stc+1);
+
+		if(fiveCount(node.board, p, node.m)){
+			value += win;
 		}
-			int value = 0;
-			int win = 10000;
-			int sfc = 48;
-			int fc = 24;
-			int otc = 8;
-			int stc = 4;
+		if(fiveCount(node.board, o, node.m)){
+			value -= win;
+		}		
 
-			value += straightFourCount(node.board, p, node.m) * sfc;
-			value -= straightFourCount(node.board, o, node.m) * (sfc+1);
-
-			value += fourCount(node.board, p, node.m)  * fc;
-			value -= fourCount(node.board, o, node.m)  * (fc+1);
-
-			value += openThreeCount(node.board, p, node.m)  * otc;
-			value -= openThreeCount(node.board, o, node.m) * (otc+1);
-
-			value += splitThreeCount(node.board, p, node.m) * stc;
-			value -= splitThreeCount(node.board, o, node.m)  * (stc+1);
-
-			if(fiveCount(node.board, p, node.m)){
-				value += win;
-			}
-			if(fiveCount(node.board, o, node.m)){
-				value -= win;
-			}		
-
-			 //BENH
-			return value;
+		return value;
 	}
 
 
@@ -257,10 +254,9 @@ public class GPlayer implements Runnable{
 
 		int[] maxChild = node.children.peek();
 
-		//this until the print statement may be removed if priority que not working doesn't happen
-		 int testm = -9999;
-		 int z = 0;
-		 int[] testMax = new int[] {-1, -1, -1};
+		 // int testm = -9999;
+		 // int z = 0;
+		 // int[] testMax = new int[] {-1, -1, -1};
 		 
 		 //Random randomGen = new Random();
 		 //int x = randomGen.nextInt(node.children.size()/node.n);
@@ -270,33 +266,33 @@ public class GPlayer implements Runnable{
 
 		// Iterator<int[]> i = node.children.iterator();
 
-		while(!(node.children.isEmpty())){
-			int[] testA = node.children.poll();
-			if(testm < testA[0]){
-				testm = testA[0];
-				testMax = testA;
-			}
-			////if(testA[0] != maxChild[0]){
-	////			same = false;
-		////	}
-			////if(z == x){
-			////	randomMove = testA;
-			////}
-			if(z < 5){
-				p("testA[0]" + testA[0]); //BENMM
-				p("testA[0]" + testA[1]);
-				p("testA[0]" + testA[2]);
-				Node nodeNew = new Node(node.n, node.m, deepCopy(node.board), true);
-				move(p, testA[1], testA[2], nodeNew);
+	// 	while(!(node.children.isEmpty())){
+	// 		int[] testA = node.children.poll();
+	// 		if(testm < testA[0]){
+	// 			testm = testA[0];
+	// 			testMax = testA;
+	// 		}
+	// 		////if(testA[0] != maxChild[0]){
+	// ////			same = false;
+	// 	////	}
+	// 		////if(z == x){
+	// 		////	randomMove = testA;
+	// 		////}
+	// 		if(z < 5){
+	// 			p("testA[0]" + testA[0]); //BENMM
+	// 			p("testA[0]" + testA[1]);
+	// 			p("testA[0]" + testA[2]);
+	// 			Node nodeNew = new Node(node.n, node.m, deepCopy(node.board), true);
+	// 			move(p, testA[1], testA[2], nodeNew);
 				
-				p(boardToString(nodeNew.board));
-				p("h val = " + heuristicVal(nodeNew, p));
-				p("isTerminal = " + isTerminal(nodeNew.board, nodeNew.m));
-				p("fiveCount x = " + fiveCount(nodeNew.board, playerOne, nodeNew.m));
-				p("fiveCount o = " + fiveCount(nodeNew.board, o, nodeNew.m));
-			}
-			z++;
-		}
+	// 			p(boardToString(nodeNew.board));
+	// 			p("h val = " + heuristicVal(nodeNew, p));
+	// 			p("isTerminal = " + isTerminal(nodeNew.board, nodeNew.m));
+	// 			p("fiveCount x = " + fiveCount(nodeNew.board, playerOne, nodeNew.m));
+	// 			p("fiveCount o = " + fiveCount(nodeNew.board, o, nodeNew.m));
+	// 		}
+	// 		z++;
+	// 	}
 		 //int[] max = node.children.peek();
 		 //if(testMax != max){
 		 //	p(max[0]);
@@ -378,22 +374,23 @@ public class GPlayer implements Runnable{
 		return beta;
 	}
 
-	public static int getChildLess(Node node, int numMove){
+	//couldn't quite get this.
+	public static int getChildLess(Node node, int numMove){ //this is to remove some of the outside moves at the start
 		double val = 0;
 		double inc = ((double)numMove / (node.n * node.n)) * (double)(node.n/2);
 		if (node.board.length/2 - inc -2 > 0){
 			val = node.board.length/2 - inc -2;
 		}
-		return (int)val;
+		return 0;
 	}
 
-	public static LinkedList<int[]> createChildren(Node node, int numMove){
+	public static LinkedList<int[]> createChildren(Node node, int numMove){ //creates children in a spiral around prev move
 		LinkedList<int[]> children = new LinkedList<int[]>();
 		int length = node.board.length;
 		int i = node.move[0];
 		int j = node.move[1];
 		boolean z = false;
-		for(int k = 1; k<( (length + 5) - (getChildLess(node, numMove))); k++){
+		for(int k = 1; k< length + 5  /* - (getChildLess(node, numMove)))*/; k++){
 			z = k%2 == 0 ? true : false;
 			for(int a = 0; a < k; a++){
 				i = z ? i-1 : i+1;
@@ -450,12 +447,15 @@ public class GPlayer implements Runnable{
 		return o;
 	}
 
-	public static void isFinished(Node node, int m, char p){
+	public static void isFinished(Node node, int m, char p, int numMove){
 		boolean isFinished = isTerminal(node.board, m);
 		if(isFinished){
 			if(fiveCount(node.board, p, m)){
 				System.out.println("Player " + p + " has won.");
-			}else {
+			} else if(numMove == node.n*node.n){
+				System.out.println("Game was a tie");
+			}
+			else {
 				System.out.println("Player " + getO(p) + " has won.");
 			}
 			System.exit(0);
@@ -464,88 +464,102 @@ public class GPlayer implements Runnable{
 
 	public static void p(Object p){System.out.println(p);}//for lazy typing
 	public static void main(String[] args){
-		//int n = args[0];
-		//int m = args[1];
-		//s = args[2];
-		//char p = args[3].charAt(0);
-		//int mode = args[4];
-
-		//MODEPICK
-		int mode = 3;
-		boolean dlock = true;
+		int n = 0;
+		int m = 0;
+		int mode = 0;
+		char p = '?';
+		boolean dlock = false; //dlock for debugging ai
 		int numMove = 0;
 
+		try{
+			n = Integer.parseInt(args[0]);
+			m = Integer.parseInt(args[1]);
+			s = Integer.parseInt(args[2]);
+			p = args[3].charAt(0);
+			mode = Integer.parseInt(args[4]);
+			
+		} catch (Exception e){
+			System.out.println("Invalid Args.");
+			System.out.println("Try <boardLength> <winChain> <timeLimit> <x or o> <mode>");
+			System.out.println("Mode1) player vs AI");
+			System.out.println("Mode2) randomGen vs AI");
+			System.out.println("Mode3) AI vs AI");
+		}
+		
+		playerOne = p;
+		char o = getO(playerOne);
+		char[][] board = initBoard(n);
+		node = new Node(n, m, board, true);
+
+		if(playerOne == 'x' && mode != 4){
+			int firstMove = n/2;
+			p(firstMove + " " + firstMove);
+			node = new Node(node.n, node.m, deepCopy(node.board), true);
+			move(playerOne, firstMove, firstMove, node);
+			p(boardToString(node.board));
+			numMove++;
+			
+			end = System.currentTimeMillis();
+		}
+		
 
 		if(mode == 1){
 		try{
 
 			BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 			String input;
-	
-			s = 10000;
-
-			int n = 15;
-			int m = 5;
-			playerOne = 'o';
-			char o = getO(playerOne);
-	
-			char[][] board = initBoard(n);
-			node = new Node(n, m, board, true);
-	
-			//make the first move
-			if(playerOne == 'x'){
-				int firstMove = n/2;
-				p(firstMove + " " + firstMove);
-				node = new Node(node.n, node.m, deepCopy(node.board), true);
-				move(playerOne, firstMove, firstMove, node);
-				p(boardToString(node.board));
-				end = System.currentTimeMillis();
-				numMove++;
-			}
-			//this could be optimized with a mod count
 			while((input = stdIn.readLine()) != null ){
 				if (input.charAt(0) == '.' || input.charAt(0) == 'o' || input.charAt(0) == 'x'){ //5 millis
 				//do nothing
 				} else {
 
-					//check to see if oppenent timed out
 					begin = System.currentTimeMillis();
-
-					//if((begin - end - 10) > s){
-					//	System.out.println("Opponent took " + (begin - end) + " millis to resopond. Move ignored");
-					//} else {
-						String[] inputString = input.split(" ");
-						int x = Integer.parseInt(inputString[0]);
-						int y = Integer.parseInt(inputString[1]);
-						if(!(x <0 || y<0 || x>=n || y>=n) &&node.board[x][y] == '.'){
-							move(o, x, y, node);
-							numMove++;
-						} else {
-							System.out.println("Invalid move. " + x + " " + y + " Move ignored. Technically " + playerOne + " has won. Continue to play for fun" );
-						}
-						
-					//}
+					
+					String[] inputString = input.split(" ");
+					int x = Integer.parseInt(inputString[0]);
+					int y = Integer.parseInt(inputString[1]);
+					if(!(x <0 || y<0 || x>=n || y>=n) &&node.board[x][y] == '.'){
+						move(o, x, y, node);
+						numMove++;
+					} else {
+						System.out.println("Invalid move. " + x + " " + y + " Move ignored. Technically " + playerOne + " has won. Continue to play for fun" );
+					}
 					
 					int d = 1; //start depth you may want to make this dynamic
 					myMove = new int[]{-1, -1, -1};
 					tempMyMove = new int[]{-1, -1, -1};
 					timedOut = false;
-					new Thread(new GPlayer()).start();
-					while(!timedOut){
+
+					if(dlock){
 						myMove = miniMaxDesc(node, d, -999999, 999999, playerOne, o, numMove);
-						d++;
+						p(myMove[1] + " " + myMove[2]);
+						p("move value = " + myMove[0]);
+						end = System.currentTimeMillis();
+						tempMyMove[1] = myMove[1];
+						tempMyMove[2] = myMove[2];
+						tempMyMove[0] = myMove[0];
+						node = new Node(node.n, node.m, deepCopy(node.board), true);
+						move(playerOne, tempMyMove[1], tempMyMove[2], node);
+						p(boardToString(node.board));
+						p("d = " + d);
+					} else{
+						new Thread(new GPlayer()).start();
+						while(!timedOut){
+							myMove = miniMaxDesc(node, d, -999999, 999999, playerOne, o, numMove);
+							d++;
+							p("d = " + (d-1));
+						}
 					}
+
+
+
 
 					numMove ++;
-					isFinished(node, m, playerOne);
-
+					isFinished(node, m, playerOne, numMove);
 					long current = System.currentTimeMillis();
-					p("d = " + (d -1));
+
 					p("begin - end = " + (end - begin));
 					p("end - current = " + (current - end));
-					if((begin -end) > s){
-						System.out.println("took too long!!!");
-					}
 				}
 			}
 		} catch (IOException e){
@@ -553,27 +567,6 @@ public class GPlayer implements Runnable{
 		}
 		}//end mode1
 		if(mode == 2){
-			s = 10000;
-			int n = 15;
-			int m = 5;
-			playerOne = 'x';
-			char o = getO(playerOne);
-	
-			char[][] board = initBoard(n);
-			node = new Node(n, m, board, true);
-
-			//first move
-			if(playerOne == 'x'){
-				System.out.println("AI's turn:");
-				int firstMove = n/2;
-				p(firstMove + " " + firstMove);
-				node = new Node(node.n, node.m, deepCopy(node.board), true);
-				move(playerOne, firstMove, firstMove, node);
-				p(boardToString(node.board));
-				numMove++;
-			}
-
-			boolean start = true;
 			while(true){
 				System.out.println("Random Move Player's turn:");
 
@@ -584,11 +577,11 @@ public class GPlayer implements Runnable{
 				p(boardToString(node.board));
 				numMove++;
 
-				isFinished(node, m, playerOne);
+				isFinished(node, m, playerOne, numMove);
 
 				System.out.println("AI's turn:");
 				begin = System.currentTimeMillis();
-				int d = 3; //start depth you may want to make this dynamic
+				int d = 1; //start depth you may want to make this dynamic
 				myMove = new int[]{-1, -1, -1};
 				tempMyMove = new int[]{-1, -1, -1};
 				timedOut = false;
@@ -598,48 +591,25 @@ public class GPlayer implements Runnable{
 					myMove = miniMaxDesc(node, d, -999999, 999999, playerOne, o, numMove);
 					d++;
 				}
-				isFinished(node, m, playerOne);
+				isFinished(node, m, playerOne, numMove);
 				numMove++;
 			}
 		}
 		if(mode == 3){
-			s = 20000;
-			int n = 15;
-			int m = 5;
-			playerOne = 'x';
-			char o = getO(playerOne);
-	
-			char[][] board = initBoard(n);
-			node = new Node(n, m, board, true);
-
-			//first move
-			if(playerOne == 'x'){
-				System.out.println("AI's turn:");
-				int firstMove = n/2;
-				p(firstMove + " " + firstMove);
-				node = new Node(node.n, node.m, deepCopy(node.board), true);
-				move(playerOne, firstMove, firstMove, node);
-				p(boardToString(node.board));
-				numMove++;
-			}
-
-			boolean start = true;
 			while(true){
 				System.out.println("o's turn:");
 				playerOne = 'o';
 				o = getO(playerOne);
 
 				begin = System.currentTimeMillis();
-				int d = 3; //start depth you may want to make this dynamic
+				int d = 1; //start depth you may want to make this dynamic
 				myMove = new int[]{-1, -1, -1};
 				tempMyMove = new int[]{-1, -1, -1};
 				timedOut = false;
-				// isTimedOut();
 				
 				if(dlock){
 					myMove = miniMaxDesc(node, d, -999999, 999999, playerOne, o, numMove);
 					p(myMove[1] + " " + myMove[2]);
-					p("move value = " + myMove[0]);
 					end = System.currentTimeMillis();
 					tempMyMove[1] = myMove[1];
 					tempMyMove[2] = myMove[2];
@@ -647,35 +617,29 @@ public class GPlayer implements Runnable{
 					node = new Node(node.n, node.m, deepCopy(node.board), true);
 					move(playerOne, tempMyMove[1], tempMyMove[2], node);
 					p(boardToString(node.board));
-					p("d = " + d);
 				} else{
 					new Thread(new GPlayer()).start();
 					while(!timedOut){
 						myMove = miniMaxDesc(node, d, -999999, 999999, playerOne, o, numMove);
 						d++;
-						p("d = " + (d-1));
 					}
 				}
-				p("numMove = " + numMove);
-				p("getChildLess = " + getChildLess(node, numMove));
 				numMove++;
 
-				isFinished(node, m, playerOne);
+				isFinished(node, m, playerOne, numMove);
 
 				System.out.println("x's turn:");
 				playerOne = 'x';
 				o = getO(playerOne);
 
 				begin = System.currentTimeMillis();
-				d = 3; //start depth you may want to make this dynamic
+				d = 1; //start depth you may want to make this dynamic
 				myMove = new int[]{-1, -1, -1};
 				tempMyMove = new int[]{-1, -1, -1};
 				timedOut = false;
-				// isTimedOut();
 				if(dlock){
 					myMove = miniMaxDesc(node, d, -999999, 999999, playerOne, o, numMove);
 					p(myMove[1] + " " + myMove[2]);
-					p("move value = " + myMove[0]);
 					end = System.currentTimeMillis();
 					tempMyMove[1] = myMove[1];
 					tempMyMove[2] = myMove[2];
@@ -683,31 +647,27 @@ public class GPlayer implements Runnable{
 					node = new Node(node.n, node.m, deepCopy(node.board), true);
 					move(playerOne, tempMyMove[1], tempMyMove[2], node);
 					p(boardToString(node.board));
-					p("d = " + d);
 				} else{
 					new Thread(new GPlayer()).start();
 					while(!timedOut){
 						myMove = miniMaxDesc(node, d, -999999, 999999, playerOne, o, numMove);
 						d++;
-						p("d = " + (d-1));
 					}
 				}
-				p("numMove = " + numMove);
-				p("getChildLess = " + getChildLess(node, numMove));
 				numMove++;
 
-				isFinished(node, m, playerOne);
+				isFinished(node, m, playerOne, numMove);
 			}
 		}//end mode 3
-		if(mode ==4 ){
-			s = 5000;
-			int n = 9;
-			int m = 5;
-			playerOne = 'x';
-			char o = getO(playerOne);
+		if(mode == 4){ //debugging
+			// s = 5000;
+			// int n = 9;
+			// int m = 5;
+			// playerOne = 'x';
+			// char o = getO(playerOne);
 	
-			char[][] board = initBoard(n);
-			node = new Node(n, m, board, true);
+			// char[][] board = initBoard(n);
+			// node = new Node(n, m, board, true);
 			//String boardString = boardToString(node.board, node.n);
 			//node.board = stringToBoard(boardString, n);
 			//int[] dir = nextDirection(0, 0, 2);
@@ -725,42 +685,59 @@ public class GPlayer implements Runnable{
 			// move(playerOne, 2, 1, node);
 			// move(o, 2, 3, node);
 			// move(o, 2, 4, node);
-			move(o, 2, 2, node);
-			move(o, 2, 3, node);
-			move(o, 2, 4, node);
-			// move(playerOne, 2, 5, node);
-			// move(playerOne, 2, 6, node);
 
-			move(o, 4, 1, node);
-			move(playerOne, 4, 2, node);
-			move(playerOne, 4, 3, node);
-			move(playerOne, 4, 4, node);
-			move(playerOne, 4, 5, node);
-			// move(playerOne, 2, 6, node);
-			// move(o, 2, 7, node);
-			p(boardToString(node.board));
+//. . . . . . . . . . . . . . . 
+//. . . . . . . . . . . . . . . 
+//. . . . . . . . . . . . . . . 
+//. . . . . . . . . . . . . . . 
+//. . . . . . . . . . . . . . . 
+//. . . . . . . . . . . . . . . 
+//. . . . . . . . . . . . . . . 
+//. . . . . . . x . . . . . . . 
+//. . . . . . . o x . . . . . . 
+//. . . . . o x x x x o . . . . 
+//. . . . . . . o o . o . . . . 
+//. . . . . . . . . . . . . . . 
+//. . . . . . . . . . . . . . . 
+//. . . . . . . . . . . . . . . 
+// //. . . . . . . . . . . . . . . 
 
-			//BEN4
-			p("isTerminal = " + isTerminal(node.board, node.m));
-			p("fiveCount x = " + fiveCount(node.board, playerOne, m));
-			p("fiveCount o = " + fiveCount(node.board, o, m));
 
-			p("fourCount x = " + fourCount(node.board, playerOne, m));
-			p("fourCount o = " + fourCount(node.board, o, m));
-			p("straightFourCount x = " + straightFourCount(node.board, playerOne, m));
-			p("straightFourCount o = " + straightFourCount(node.board, o, m));
-			p("openThreeCount x = " + openThreeCount(node.board, playerOne, m));
-			p("openThreeCount o = " + openThreeCount(node.board, o, m));
-			p("splitThreeCount x = " + splitThreeCount(node.board, playerOne, m));
-			p("splitThreeCount o = " + splitThreeCount(node.board, o, m));
-			p("heuristicVal o = " + heuristicVal(node, o));
-			p("heuristicVal x = " + heuristicVal(node, playerOne));
+// 			move('o', 2, 2, node);
+// 			move('o', 2, 3, node);
+// 			move('o', 2, 4, node);
+// 			move('o', 2, 5, node);
+// 			move('x', 2, 0, node);
 
-			myMove = miniMaxDesc(node, 3, -999999, 999999, o, playerOne, 1);
+// 			//move('o', 4, 1, node);
+// 			//move('x', 4, 2, node);
+// 			//move('x', 4, 3, node);
+// 			//move('x', 4, 4, node);
+// 			//move('x', 4, 5, node);
+// 			// move(playerOne, 2, 6, node);
+// 			// move(o, 2, 7, node);
+// 			p(boardToString(node.board));
 
-			node = new Node(node.n, node.m, deepCopy(node.board), true);
-			move(o, myMove[1], myMove[2], node);
-			p(boardToString(node.board));
+// 			//BEN4
+// 			p("isTerminal = " + isTerminal(node.board, node.m));
+// 			p("fiveCount x = " + fiveCount(node.board, playerOne, m));
+// 			p("fiveCount o = " + fiveCount(node.board, o, m));
+
+// 			p("fourCount x = " + fourCount(node.board, playerOne, m));
+// 			p("fourCount o = " + fourCount(node.board, o, m));
+// 			p("straightFourCount x = " + straightFourCount(node.board, playerOne, m));
+// 			p("straightFourCount o = " + straightFourCount(node.board, o, m));
+// 			p("openThreeCount x = " + openThreeCount(node.board, playerOne, m));
+// 			p("openThreeCount o = " + openThreeCount(node.board, o, m));
+// 			p("splitThreeCount x = " + splitThreeCount(node.board, playerOne, m));
+// 			p("splitThreeCount o = " + splitThreeCount(node.board, o, m));
+// 			p("heuristicVal o = " + heuristicVal(node, o));
+// 			p("heuristicVal x = " + heuristicVal(node, playerOne));
+
+			//myMove = miniMaxDesc(node, 2, -999999, 999999, playerOne, o, 1);
+			//node = new Node(node.n, node.m, deepCopy(node.board), true);
+			//move(playerOne, myMove[1], myMove[2], node);
+			//p(boardToString(node.board));
 
 
 			// p("isterm[0] = " + isTerminalUtil(node.board, m, o)[0]);
@@ -790,15 +767,11 @@ public class GPlayer implements Runnable{
 		while(!timedOut){
 			isTimedOut();
 		}
-		tempMyMove[1] = myMove[1];
-		tempMyMove[2] = myMove[2];
-		tempMyMove[0] = myMove[0];
-		
-		p(tempMyMove[1] + " " + tempMyMove[2]);
-		p("move value = " + tempMyMove[0]);
-		end = System.currentTimeMillis();
+		p(myMove[1] + " " + myMove[2]);
+		// p("move value = " + myMove[0]);
 		node = new Node(node.n, node.m, deepCopy(node.board), true);
-		move(playerOne, tempMyMove[1], tempMyMove[2], node);
+		move(playerOne, myMove[1], myMove[2], node);
+		end = System.currentTimeMillis();
 		p(boardToString(node.board));
 	}
 }
